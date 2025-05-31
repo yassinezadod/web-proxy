@@ -1,0 +1,11 @@
+{
+
+  "scripts": {
+  "start:frontend": "cd proxy-web-front && npm run dev",
+  "start:backend": "cd web-proxy-backend && npm start",
+  "start:all": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
+},
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
