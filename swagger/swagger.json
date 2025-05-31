@@ -1,0 +1,313 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Web Proxy",
+    "version": "1.0.0",
+    "description": "Documentation de l'API backend du projet Web Proxy"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Serveur local"
+    }
+  ],
+  "paths": {
+    "/api/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Authentifie un utilisateur admin et retourne un token JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "example": "admin@example.com" },
+                  "password": { "type": "string", "example": "password123" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès, retourne le token JWT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Email ou mot de passe incorrect"
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      }
+    },
+    "/api/user/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Récupère les informations de l'utilisateur connecté",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Infos utilisateur",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "_id": { "type": "string", "example": "6837907f13f390e437729114" },
+                    "email": { "type": "string", "example": "admin@example.com" },
+                    "createdAt": { "type": "string", "format": "date-time" },
+                    "updatedAt": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non autorisé, token invalide ou manquant"
+          }
+        }
+      }
+    },
+    "/api/logout": {
+  "post": {
+    "tags": ["Auth"],
+    "summary": "Déconnecte l'utilisateur (logout)",
+    "description": "Déconnexion de l'utilisateur en validant le token JWT. Pas d'invalidation réelle côté serveur.",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Déconnexion réussie",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Déconnexion réussie"
+                }
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Token invalide ou manquant",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Non autorisé"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+},
+
+
+"/api/stats": {
+  "get": {
+    "tags": ["Proxy"],
+    "summary": "Récupère les statistiques générales du proxy",
+    "description": "Retourne le nombre total de requêtes, la bande passante totale utilisée, et les URLs les plus consultées.",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Statistiques récupérées avec succès",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "totalRequests": {
+                  "type": "integer",
+                  "example": 1234,
+                  "description": "Nombre total de requêtes proxy traitées"
+                },
+                "totalBandwidth": {
+                  "type": "integer",
+                  "example": 987654321,
+                  "description": "Bande passante totale utilisée (en octets)"
+                },
+                "topUrls": {
+                  "type": "array",
+                  "description": "Liste des URLs les plus consultées avec leur nombre d'accès",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "_id": {
+                        "type": "string",
+                        "example": "https://example.com"
+                      },
+                      "count": {
+                        "type": "integer",
+                        "example": 42,
+                        "description": "Nombre d'accès à cette URL"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Non autorisé, token invalide ou manquant"
+      },
+      "500": {
+        "description": "Erreur serveur lors de la récupération des statistiques"
+      }
+    }
+  }
+},
+
+    "/api/proxy": {
+      "get": {
+        "tags": ["Proxy"],
+        "summary": "Faire une requête proxy vers une URL distante",
+        "description": "Proxy une page distante et permet de désactiver JavaScript ou bloquer la publicité.",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "description": "URL distante à proxifier",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "name": "disableJS",
+            "in": "query",
+            "description": "Désactiver l’exécution des scripts JavaScript (true/false)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "default": "false"
+            }
+          },
+          {
+            "name": "blockAds",
+            "in": "query",
+            "description": "Bloquer les publicités simples (iframe, div avec 'ad') (true/false)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "default": "false"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page HTML proxyfiée",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string",
+                  "example": "<!DOCTYPE html><html>...</html>"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Paramètre url manquant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Paramètre url est requis"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur lors de la requête proxy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Erreur lors de la requête proxy"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Gestion de l'authentification"
+    },
+    {
+      "name": "Proxy",
+      "description": "Fonctionnalités du proxy web"
+    }
+  ]
+}
