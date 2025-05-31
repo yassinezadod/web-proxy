@@ -5,6 +5,7 @@ const proxyRoutes = require('./routes/proxy.routes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger/swagger.json');
 const logoutRoute = require('./routes/logout');
+const logsRouter = require('./routes/logs.routes');
 const statsRoutes = require('./routes/stats.routes');
 require('dotenv').config();
 
@@ -21,6 +22,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api', authRoutes);
 app.use('/api', proxyRoutes);
 app.use('/api', statsRoutes);
+app.use('/api', logsRouter);
 
 // Monte le routeur pour /api/logout
 app.use('/api', logoutRoute);
